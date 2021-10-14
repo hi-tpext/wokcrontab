@@ -181,8 +181,6 @@ class Wokcrontabapp extends Controller
             $randStr .= $chars[rand(0, $len - 1)];
         }
 
-        $tokenvalue = $randStr;
-
-        return $tokenvalue;
+        return $randStr;
     }
 }
