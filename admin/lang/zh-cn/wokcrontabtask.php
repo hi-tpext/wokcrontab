@@ -6,7 +6,7 @@
  */
 
 return [
-    'id'  => '会员内部id',
+    'id'  => 'id',
     'app_id'  => '应用App_id',
     'name'  => '名称',
     'rule'  => '规则',
