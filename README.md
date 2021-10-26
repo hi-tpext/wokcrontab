@@ -32,6 +32,19 @@ return [
 ];
 ```
 
+#### 环境要求
+
+需要使用以下php方法，确保以下方法未被禁用：
+
+```
+pcntl_wait
+pcntl_signal
+pcntl_fork
+pcntl_signal_dispatch
+pcntl_alarm
+其他（待补充）
+```
+
 #### 启动脚本,start.sh
 
 ```bash
@@ -57,7 +70,23 @@ php think worker:server restart
 ```
 
 修改`/www/wwwroot/www.localhost.com`为实际网站路径
+
 创建定时任务执行sh脚本
+
+#### 启动成功
+
+在linux终端执行以下命令，以判断启动成功
+
+`ps aux | grep WorkerMan`
+
+如果输出类似以下，说明启动成功。
+
+```
+root      122200  0.0  0.1 217728 13776 ?        S    14:43   0:00 WorkerMan: master process  start_file=/www/wwwroot/www.localhost.com/think
+www       123287  0.0  0.2 218316 22000 ?        S    14:55   0:00 WorkerMan: worker process  workcrontab websocket://0.0.0.0:22986
+```
+
+如果只有第一条[master process]没有[worker process]，则是启动失败，请到网站的`runimeme`目录里面查看`worker22986.stdout.log`日志分析原因。
 
 #### 添加任务
 

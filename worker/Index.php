@@ -23,8 +23,6 @@ class Index extends Server
         'reusePort' => true,
     ];
 
-    public const HEARTBEAT_TIME = 60;
-
     protected $appTasks = [];
 
     protected $appList = null;
@@ -41,12 +39,16 @@ class Index extends Server
 
         $config = Module::getInstance()->config();
 
-        $this->socket = 'websocket://0.0.0.0:' . ($config['port'] ?: 22886);
+        $this->socket = 'websocket://0.0.0.0:' . ($config['port'] ?: 22986);
 
         $this->option['user'] = $config['user'] ?: 'www';
         $this->option['group'] = $config['group'] ?: 'www';
 
         Worker::$daemonize = $config['daemonize'] == 1;
+
+        Worker::$pidFile = app()->getRuntimePath() . 'worker' . $config['port'] . '.pid';
+        Worker::$logFile = app()->getRuntimePath() . 'worker' . $config['port'] . '.log';
+        Worker::$stdoutFile = app()->getRuntimePath() . 'worker' . $config['port'] . '.stdout.log';
 
         Log::init(['type' => 'File', 'path' => app()->getRuntimePath() . 'log' . DIRECTORY_SEPARATOR . 'task']);
 
