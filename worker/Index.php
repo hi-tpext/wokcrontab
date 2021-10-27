@@ -87,7 +87,7 @@ class Index extends Server
                         $t2 = microtime(true);
                         $time1 = round($t2 - $t1, 2);
 
-                        model\WokCrontabTask::where('id', $tid)->update(['last_run_time' => date('Y-m-d H:i:s'), 'last_run_info' => $res[0] . mb_substr(':' . $res[1], 0, 30)]);
+                        model\WokCrontabTask::where('id', $tid)->update(['last_run_time' => date('Y-m-d H:i:s'), 'last_run_info' => $res[0] . ':' . $res[1]]);
 
                         Log::info($li['rule'] . ' @ ' . 'request url :' . $li['url']  . ' => ' . $time1 . ' s, ' . ' [' . $res[0] . ']' . $res[1]);
                     });
@@ -111,40 +111,28 @@ class Index extends Server
         }
     }
 
-    protected function curl($url, $params = false, $ispost = 0)
+    /**
+     * Undocumented function
+     *
+     * @param string $url
+     * @return array
+     */
+    protected function curl($url)
     {
-        $httpInfo = array();
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
-        curl_setopt($ch, CURLOPT_USERAGENT, 'wokcrontab');
-        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 60);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 300);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-        if ($ispost) {
-            curl_setopt($ch, CURLOPT_POST, true);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, $params);
-            curl_setopt($ch, CURLOPT_URL, $url);
-        } else {
-            if ($params) {
-                curl_setopt($ch, CURLOPT_URL, $url . '?' . $params);
-            } else {
-                curl_setopt($ch, CURLOPT_URL, $url);
-            }
-        }
-        $response = curl_exec($ch);
+        $options = array(
+            'http' => array(
+                'method' => 'GET',
+                'timeout' => 300 // 超时时间（单位:s）
+            )
+        );
+        $context = stream_context_create($options);
+        $result = file_get_contents(trim($url), false, $context, 0, 30);
 
-        if ($response === FALSE) {
-            //echo "cURL Error: " . curl_error($ch);
-            return ['500', 'request failed'];
-        } else if ($response == '') {
-            $response = '无返回内容';
+        if (!$result) {
+            return [200, '无返回内容'];
         }
 
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        $httpInfo = array_merge($httpInfo, curl_getinfo($ch));
-        curl_close($ch);
-        return [$httpCode, $response];
+        return [200, $result];
     }
 
     /**
