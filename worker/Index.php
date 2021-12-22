@@ -119,20 +119,28 @@ class Index extends Server
      */
     protected function curl($url)
     {
-        $options = array(
-            'http' => array(
-                'method' => 'GET',
-                'timeout' => 300 // 超时时间（单位:s）
-            )
-        );
-        $context = stream_context_create($options);
-        $result = file_get_contents(trim($url), false, $context, 0, 30);
+        try
+        {
+            $options = array(
+                'http' => array(
+                    'method' => 'GET',
+                    'timeout' => 300 // 超时时间（单位:s）
+                )
+            );
+            $context = stream_context_create($options);
 
-        if (!$result) {
-            return [200, '无返回内容'];
+            $result = file_get_contents(trim($url), false, $context, 0, 30);
+    
+            if (!$result) {
+                return [200, '无返回内容'];
+            }
+    
+            return [200, $result];
         }
-
-        return [200, $result];
+        catch(\Exception $e)
+        {
+            return [500, $e->getMessage()];
+        }
     }
 
     /**
@@ -140,7 +148,7 @@ class Index extends Server
      */
     protected function heartBeat()
     {
-        Timer::add(10, function () {
+        Timer::add(5, function () {
             model\WokCrontabTask::where('id', 1)->find(); //保存数据库连接
         });
 
