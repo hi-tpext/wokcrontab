@@ -9,6 +9,7 @@ use wokcrontab\common\model;
 use wokcrontab\common\Module;
 use Workerman\Crontab\Crontab;
 use Workerman\Lib\Timer;
+use think\Db;
 
 class Index extends Server
 {
@@ -57,6 +58,8 @@ class Index extends Server
 
     public function onWorkerStart($worker)
     {
+        Log::info("onWorkerStart");
+        Db::connect(false, true);
         $this->runTask();
         $this->heartBeat($worker);
     }
@@ -155,6 +158,17 @@ class Index extends Server
         Timer::add(60, function () {
             Index::$that->runTask();
         });
+    }
+
+    public function onWorkerReload($worker)
+    {
+        Log::info("onWorkerReload");
+        Db::connect(false, true);
+    }
+
+    public function onClose($connection)
+    {
+        Log::info("onClose");
     }
 
     public function onConnect($connection)
