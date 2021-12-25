@@ -2,14 +2,15 @@
 
 namespace wokcrontab\worker;
 
+use think\Db;
 use think\facade\Log;
 use Workerman\Worker;
 use think\worker\Server;
+use Workerman\Lib\Timer;
+use tpext\common\ExtLoader;
 use wokcrontab\common\model;
 use wokcrontab\common\Module;
 use Workerman\Crontab\Crontab;
-use Workerman\Lib\Timer;
-use think\Db;
 
 class Index extends Server
 {
@@ -59,7 +60,13 @@ class Index extends Server
     public function onWorkerStart($worker)
     {
         Log::info("onWorkerStart");
-        Db::connect(false, true);
+
+        if (ExtLoader::isTP51()) {
+            Db::connect([], 'wokcrontab' . date('YmdHi'));
+        } else if (ExtLoader::isTP60()) {
+            Db::connect('wokcrontab', true);
+        }
+        
         $this->runTask();
         $this->heartBeat($worker);
     }
@@ -122,8 +129,7 @@ class Index extends Server
      */
     protected function curl($url)
     {
-        try
-        {
+        try {
             $options = array(
                 'http' => array(
                     'method' => 'GET',
@@ -133,15 +139,13 @@ class Index extends Server
             $context = stream_context_create($options);
 
             $result = file_get_contents(trim($url), false, $context, 0, 30);
-    
+
             if (!$result) {
                 return [200, '无返回内容'];
             }
-    
+
             return [200, $result];
-        }
-        catch(\Exception $e)
-        {
+        } catch (\Exception $e) {
             return [500, $e->getMessage()];
         }
     }
@@ -163,7 +167,12 @@ class Index extends Server
     public function onWorkerReload($worker)
     {
         Log::info("onWorkerReload");
-        Db::connect(false, true);
+
+        if (ExtLoader::isTP51()) {
+            Db::connect([], 'wokcrontab' . date('YmdHi'));
+        } else if (ExtLoader::isTP60()) {
+            Db::connect('wokcrontab', true);
+        }
     }
 
     public function onClose($connection)
