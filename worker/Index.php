@@ -5,6 +5,7 @@ namespace wokcrontab\worker;
 use think\Db;
 use think\facade\Log;
 use Workerman\Worker;
+use think\facade\Config;
 use think\worker\Server;
 use Workerman\Lib\Timer;
 use tpext\common\ExtLoader;
@@ -59,14 +60,10 @@ class Index extends Server
 
     public function onWorkerStart($worker)
     {
-        Log::info("onWorkerStart");
+        Log::info("wokcrontab onWorkerStart");
 
-        if (ExtLoader::isTP51()) {
-            Db::connect([], 'wokcrontab' . date('YmdHi'));
-        } else if (ExtLoader::isTP60()) {
-            Db::connect('wokcrontab', true);
-        }
-        
+        $this->initDb();
+
         $this->runTask();
         $this->heartBeat($worker);
     }
@@ -166,23 +163,18 @@ class Index extends Server
 
     public function onWorkerReload($worker)
     {
-        Log::info("onWorkerReload");
-
-        if (ExtLoader::isTP51()) {
-            Db::connect([], 'wokcrontab' . date('YmdHi'));
-        } else if (ExtLoader::isTP60()) {
-            Db::connect('wokcrontab', true);
-        }
+        Log::info("wokcrontab onWorkerReload");
+        $this->initDb();
     }
 
     public function onClose($connection)
     {
-        Log::info("onClose");
+        Log::info("wokcrontab onClose");
     }
 
     public function onConnect($connection)
     {
-        Log::info("not allowed");
+        Log::info("wokcrontab onConnect not allowed");
 
         $connection->close();
     }
@@ -195,6 +187,56 @@ class Index extends Server
      */
     public function onError($connection, $code, $msg)
     {
-        Log::error("error $code $msg");
+        Log::error("wokcrontab error $code $msg");
+    }
+
+    protected function initDb()
+    {
+        if (ExtLoader::isTP51()) {
+            $breakMatchStr = [
+                'server has gone away',
+                'no connection to the server',
+                'Lost connection',
+                'is dead or not enabled',
+                'Error while sending',
+                'decryption failed or bad record mac',
+                'server closed the connection unexpectedly',
+                'SSL connection has been closed unexpectedly',
+                'Error writing data to the connection',
+                'Resource deadlock avoided',
+                'failed with errno',
+                'child connection forced to terminate due to client_idle_limit',
+                'query_wait_timeout',
+                'reset by peer',
+                'Physical connection is not usable',
+                'TCP Provider: Error code 0x68',
+                'ORA-03114',
+                'Packets out of order. Expected',
+                'Adaptive Server connection failed',
+                'Communication link failure',
+                'connection is no longer usable',
+                'Login timeout expired',
+                'SQLSTATE[HY000] [2002] Connection refused',
+                'running with the --read-only option so it cannot execute this statement',
+                'The connection is broken and recovery is not possible. The connection is marked by the client driver as unrecoverable. No attempt was made to restore the connection.',
+                'SQLSTATE[HY000] [2002] php_network_getaddresses: getaddrinfo failed: Try again',
+                'SQLSTATE[HY000] [2002] php_network_getaddresses: getaddrinfo failed: Name or service not known',
+                'SQLSTATE[HY000]: General error: 7 SSL SYSCALL error: EOF detected',
+                'SQLSTATE[HY000] [2002] Connection timed out',
+                'SSL: Connection timed out',
+                'SQLSTATE[HY000]: General error: 1105 The last transaction was aborted due to Seamless Scaling. Please retry.',
+                'bytes failed with errno=32 Broken pipe'
+            ];
+
+            $config = array_merge(Config::pull('database'), ['break_reconnect' => true, 'break_match_str' => $breakMatchStr]);
+            
+            Db::init($config);
+            Db::connect($config);
+        } else if (ExtLoader::isTP60()) {
+            $config = array_merge(Config::get('database.connections.mysql'), ['break_reconnect' => true]);
+
+            Db::setConfig($config);
+            Db::connect('mysql')->connect($config);
+        }
     }
 }
