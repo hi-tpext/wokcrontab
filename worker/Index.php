@@ -53,7 +53,7 @@ class Index extends Server
         Worker::$logFile = app()->getRuntimePath() . 'worker' . $config['port'] . '.log';
         Worker::$stdoutFile = app()->getRuntimePath() . 'worker' . $config['port'] . '.stdout.log';
 
-        Log::init(['type' => 'File', 'path' => app()->getRuntimePath() . 'log' . DIRECTORY_SEPARATOR . 'task']);
+        Log::init(['type' => 'File', 'path' => app()->getRuntimePath() . 'log' . DIRECTORY_SEPARATOR . 'worker']);
 
         parent::__construct();
     }
