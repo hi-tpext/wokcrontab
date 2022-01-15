@@ -100,16 +100,21 @@ class Wokcrontabtask extends Controller
 
         $table->show('id');
         $table->show('app_id')->to('{app_id}#{app.name}');
-        $table->text('name')->autoPost();
-        $table->show('rule');
-        $table->show('url');
+        $table->text('name')->autoPost()->getWrapper()->addStyle('max-width:150px');
+        $table->fields('rule', '规则')->with(
+            $table->show('rule'),
+            $table->show('url')->cut(130)
+        )->getWrapper()->addStyle('max-width:250px');
         $table->show('remark')->autoPost();
         $table->show('tag')->autoPost();
-        $table->show('last_run_info');
-        $table->show('last_run_time');
-        $table->show('create_time');
-        $table->show('update_time');
-
+        $table->fields('last_run_info', '最后运行信息')->with(
+            $table->show('last_run_info')->cut(30),
+            $table->show('last_run_time')
+        )->getWrapper()->addStyle('max-width:250px');
+        $table->fields('create_time', '添加/修改时间')->with(
+            $table->show('create_time'),
+            $table->show('update_time')
+        );
         $table->getToolbar()
             ->btnAdd()
             ->btnRefresh();
@@ -120,6 +125,13 @@ class Wokcrontabtask extends Controller
             ->btnDelete();
 
         $table->sortable('id,app_id,uid');
+
+        $this->builder()->addStyleSheet('
+        .table > tbody > tr > td .row-last_run_info,.table > tbody > tr > td .row-rule
+        {
+            white-space:normal;
+        }
+        ');
     }
 
     /**

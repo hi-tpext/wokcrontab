@@ -127,9 +127,18 @@ class Index extends Server
     protected function curl($url)
     {
         try {
+
+            $cafile = Module::getInstance()->getRoot() . 'data' . DIRECTORY_SEPARATOR . 'cacert.pem';
+            echo is_file($cafile)?'yes':'no';
+
             $options = array(
                 'http' => array(
                     'method' => 'GET',
+                    'ssl' => [
+                        'cafile' => $cafile,
+                        'verify_peer' => false,
+                        'verify_peer_name' => false,
+                    ],
                     'timeout' => 300 // 超时时间（单位:s）
                 )
             );
@@ -229,7 +238,7 @@ class Index extends Server
             ];
 
             $config = array_merge(Config::pull('database'), ['break_reconnect' => true, 'break_match_str' => $breakMatchStr]);
-            
+
             Db::init($config);
             Db::connect($config);
         } else if (ExtLoader::isTP60()) {
