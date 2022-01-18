@@ -129,7 +129,6 @@ class Index extends Server
         try {
 
             $cafile = Module::getInstance()->getRoot() . 'data' . DIRECTORY_SEPARATOR . 'cacert.pem';
-            echo is_file($cafile)?'yes':'no';
 
             $options = array(
                 'http' => array(
