@@ -147,7 +147,7 @@ class Wokcrontabtask extends Controller
         $form->hidden('id');
         $form->select('app_id')->dataUrl(url('/admin/wokcrontabapp/selectpage'))->required();
         $form->text('name')->maxlength(55)->required();
-        $form->text('rule')->maxlength(55)->default('0  *  *  *  *  *')->required()->help('crontab格式的规则<pre>' . '
+        $form->text('rule')->maxlength(55)->default('*  *  *  *  *')->required()->help('crontab格式的规则，一定要仔细了解规则，避免频繁请求对服务器造成压力。<pre>' . '
 *  *  *  *  *  *
 -  -  -  -  -  -
 |  |  |  |  |  |
