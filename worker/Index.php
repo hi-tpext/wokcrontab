@@ -143,13 +143,13 @@ class Index extends Server
             );
             $context = stream_context_create($options);
 
-            $result = file_get_contents(trim($url), false, $context, 0, 30);
+            $result = file_get_contents(trim($url), false, $context);
 
             if (!$result) {
                 return [200, '无返回内容'];
             }
 
-            return [200, $result];
+            return [200, mb_substr($result, 0, 100)];
         } catch (\Exception $e) {
             return [500, $e->getMessage()];
         }

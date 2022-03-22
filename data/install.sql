@@ -16,7 +16,7 @@ CREATE TABLE `__PREFIX__wok_crontab_task` (
   `url` varchar(255) NOT NULL DEFAULT '' COMMENT 'url',
   `remark` varchar(255) NOT NULL DEFAULT '' COMMENT '备注',
   `tag` varchar(55) NOT NULL DEFAULT '' COMMENT '标签',
-  `last_run_info` varchar(55) NOT NULL DEFAULT '' COMMENT '最后一次运行信息',
+  `last_run_info` varchar(255) NOT NULL DEFAULT '' COMMENT '最后一次运行信息',
   `last_run_time` datetime NOT NULL DEFAULT '1970-01-01 00:00:00' COMMENT '最后一次运行时间',
   `create_time` datetime NOT NULL DEFAULT '1970-01-01 00:00:00' COMMENT '添加时间',
   `update_time` datetime NOT NULL DEFAULT '1970-01-01 00:00:00' COMMENT '更新时间',
