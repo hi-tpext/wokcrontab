@@ -151,7 +151,7 @@ class Index extends Server
 
             return [200, mb_substr($result, 0, 100)];
         } catch (\Exception $e) {
-            return [500, $e->getMessage()];
+            return [500, mb_substr($e->getMessage(), 0, 100)];
         }
     }
 
