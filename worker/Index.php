@@ -88,9 +88,9 @@ class Index extends Server
                     Log::info("task info changed, remove:" . $tid);
                 }
                 if (!isset($this->appTasks[$tid])) {
-                    $task = new Crontab($li['rule'], function () use ($li, $tid) {
+                    $task = new Crontab($li['rule'], function () use ($li, $tid, $app) {
                         $t1 = microtime(true);
-                        $res = Index::$that->curl($li['url'], '');
+                        $res = Index::$that->curl($li['url'], $app);
                         $t2 = microtime(true);
                         $time1 = round($t2 - $t1, 2);
 
@@ -124,11 +124,33 @@ class Index extends Server
      * @param string $url
      * @return array
      */
-    protected function curl($url)
+    protected function curl($url, $app)
     {
         try {
 
+            $url = trim($url);
+            $time = time();
+            $sign = md5($app['secret'] . $time);
+            $params = '__appid__=' . $app['id'] . '&__time__=' . $time . '&__sign__=' . $sign;
+
+            if (strpos($url, '?') !== false) {
+                $url .= '&' . $params;
+            } else {
+                $url .= '?' . $params;
+            }
+
             $cafile = Module::getInstance()->getRoot() . 'data' . DIRECTORY_SEPARATOR . 'cacert.pem';
+
+            $header = [
+                'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+                'Accept-Encoding: gzip, deflate, br',
+                'Accept-Language: zh-CN,en-US;q=0.7,en;q=0.3',
+                'Content-Type: application/x-www-form-urlencoded; charset=UTF-8',
+                'Connection: close',
+                'User-Agent: Mozilla/5.0 (Linux) Gecko/20100101 Firefox/99.0 Chrome/99.0 Wokcrontab/1.0.8',
+                'Referer: ' . preg_replace('/^(https?:\/\/[^\/]+).*$/', '$1', $url) . '/',
+                'Host: ' . preg_replace('/^https?:\/\/([^\/]+).*$/', '$1', $url),
+            ];
 
             $options = array(
                 'http' => array(
@@ -138,12 +160,13 @@ class Index extends Server
                         'verify_peer' => false,
                         'verify_peer_name' => false,
                     ],
+                    'header' => implode("\r\n", $header),
                     'timeout' => 300 // 超时时间（单位:s）
                 )
             );
             $context = stream_context_create($options);
 
-            $result = file_get_contents(trim($url), false, $context);
+            $result = file_get_contents($url, false, $context);
 
             if (!$result) {
                 return [200, '无返回内容'];
