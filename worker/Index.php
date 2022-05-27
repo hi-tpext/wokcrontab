@@ -131,13 +131,6 @@ class Index extends Server
             $url = trim($url);
             $time = time();
             $sign = md5($app['secret'] . $time);
-            $params = '__appid__=' . $app['id'] . '&__time__=' . $time . '&__sign__=' . $sign;
-
-            if (strpos($url, '?') !== false) {
-                $url .= '&' . $params;
-            } else {
-                $url .= '?' . $params;
-            }
 
             $cafile = Module::getInstance()->getRoot() . 'data' . DIRECTORY_SEPARATOR . 'cacert.pem';
 
@@ -150,7 +143,12 @@ class Index extends Server
                 'User-Agent: Mozilla/5.0 (Linux) Gecko/20100101 Firefox/99.0 Chrome/99.0 Wokcrontab/1.0.8',
                 'Referer: ' . preg_replace('/^(https?:\/\/[^\/]+).*$/', '$1', $url) . '/',
                 'Host: ' . preg_replace('/^https?:\/\/([^\/]+).*$/', '$1', $url),
+                'appid: ' . $app['id'],
+                'time: ' . $time,
+                'sign: ' . $sign,
             ];
+
+            request()->header();
 
             $options = array(
                 'http' => array(

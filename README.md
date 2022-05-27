@@ -157,7 +157,7 @@ www       123287  0.0  0.2 218316 22000 ?        S    14:55   0:00 WorkerMan: wo
 
 #### 请求验证(自版本1.0.8)
 
-请求url中自动拼接三个参数：`__appid__`,`__time__`,`__sign__`
+请求header中三个参数：`appid`,`time`,`sign`
 
 ```php
 
@@ -174,25 +174,26 @@ class Order extends Controller
 
     public function __construct()
     {
-        $__appid__ = input('__appid__', '');
-        $__time__ = input('__time__', '');
-        $__sign__ = input('__sign__', '');
+       
+        $appid = request()->header('appid', '');
+        $time = request()->header('time', '');
+        $sign = request()->header('sign', '');
 
-        $res = $this->validateApp($__appid__, $__sign__, $__time__);
+        $res = $this->validateApp($appid, $sign, $time);
         
         if ($res['code'] != 1) {//验证失败
             exit $res['msg'];
         }
     }
 
-    private function validateApp($app_id, $sign, $time)
+    private function validateApp($appid, $sign, $time)
     {
-        if (empty($app_id) || empty($sign) || empty($time)) {
+        if (empty($appid) || empty($sign) || empty($time)) {
             return ['code' => 0, 'msg' => '参数错误'];
         }
 
-        if ($app_id != $this->app_id) {
-            return ['code' => 0, 'msg' => '任务不在本appid下-' . $app_id];
+        if ($appid != $this->app_id) {
+            return ['code' => 0, 'msg' => '任务不在本appid下-' . $appid];
         }
 
         if ((abs(time() - $time)) > 10) {
