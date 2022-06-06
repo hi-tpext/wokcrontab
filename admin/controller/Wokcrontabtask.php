@@ -164,10 +164,10 @@ class Wokcrontabtask extends Controller
         $form->text('url')->maxlength(255)->required()->help('要请求的网址');
         $form->text('remark')->maxlength(255);
         $form->text('tag')->maxlength(55);
-        $form->show('last_run_info');
-        $form->show('last_run_time');
 
         if ($isEdit) {
+            $form->show('last_run_info');
+            $form->show('last_run_time');
             $form->show('create_time');
             $form->show('update_time');
         }
