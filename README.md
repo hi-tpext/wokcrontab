@@ -40,7 +40,7 @@ return [
 
 #### webman修改配置
 
-`/config/worker_server.php`
+`/config/process.php`
 
 ```php
  return [
