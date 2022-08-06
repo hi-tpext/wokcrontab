@@ -20,9 +20,15 @@ composer require topthink/think-worker:^3.0
 composer require workerman/crontab:^1.0
 ```
 
+#### webman
+
+```bash
+composer require workerman/crontab:^1.0
+```
+
 ### 使用
 
-#### 修改配置
+#### tp修改配置
 
 `/config/worker_server.php`
 
@@ -30,6 +36,20 @@ composer require workerman/crontab:^1.0
 return [
     'worker_class' => ['wokcrontab\\worker\\Index'],//可以多个
 ];
+```
+
+#### webman修改配置
+
+`/config/worker_server.php`
+
+```php
+ return [
+    //....其它配置，这里省略....
+    'wokcrontab'  => [
+        'handler'  => 'wokcrontab\\worker\\Webman'
+    ],
+];
+//修改完重启webman
 ```
 
 #### 环境要求
@@ -45,7 +65,7 @@ pcntl_alarm
 其他（待补充）
 ```
 
-#### 启动脚本,start.sh
+#### tp 启动脚本,start.sh
 
 ```bash
 COUNT1=`ps -ef |grep WorkerMan|grep -v "grep" |wc -l`;
@@ -61,7 +81,7 @@ if [ $COUNT1 -eq 0 ];then
 fi
 ```
 
-#### 重启脚本,restart.sh
+#### tp 重启脚本,restart.sh
 
 ```bash
 cd /www/wwwroot/www.localhost.com

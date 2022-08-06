@@ -37,7 +37,7 @@ class Wokcrontabapp extends Controller
         $this->pagesize = 8;
         $this->sortOrder = 'id desc';
 
-        Lang::load(Module::getInstance()->getRoot() . implode(DIRECTORY_SEPARATOR, ['admin', 'lang', config('default_lang'), 'wokcrontabapp' . '.php']));
+        Lang::load(Module::getInstance()->getRoot() . implode(DIRECTORY_SEPARATOR, ['admin', 'lang', config('default_lang', 'zh-cn'), 'wokcrontabapp' . '.php']));
     }
 
     /**

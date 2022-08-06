@@ -41,7 +41,7 @@ class Wokcrontabtask extends Controller
 
         $this->indexWith = ['app'];
 
-        Lang::load(Module::getInstance()->getRoot() . implode(DIRECTORY_SEPARATOR, ['admin', 'lang', config('default_lang'), 'wokcrontabtask' . '.php']));
+        Lang::load(Module::getInstance()->getRoot() . implode(DIRECTORY_SEPARATOR, ['admin', 'lang', config('default_lang', 'zh-cn'), 'wokcrontabtask' . '.php']));
     }
 
     /**
