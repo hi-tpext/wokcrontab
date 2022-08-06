@@ -2,7 +2,7 @@
 
 namespace wokcrontab\worker;
 
-use think\Db;
+use think\facade\Db;
 use think\facade\Log;
 use Workerman\Worker;
 use think\facade\Config;
@@ -259,8 +259,8 @@ class Index extends Server
 
             $config = array_merge(Config::pull('database'), ['break_reconnect' => true, 'break_match_str' => $breakMatchStr]);
 
-            Db::init($config);
-            Db::connect($config);
+            \think\Db::init($config);
+            \think\Db::connect($config);
         } else if (ExtLoader::isTP60()) {
             $config = array_merge(Config::get('database.connections.mysql'), ['break_reconnect' => true]);
 
