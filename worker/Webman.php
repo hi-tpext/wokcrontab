@@ -148,10 +148,6 @@ class Webman
      */
     protected function heartBeat()
     {
-        Timer::add(5, function () {
-            model\WokCrontabTask::where('id', 1)->find(); //保存数据库连接
-        });
-
         Timer::add(60, function () {
             self::$that->runTask();
         });
@@ -188,9 +184,6 @@ class Webman
 
     protected function initDb()
     {
-        $config = array_merge(Config::get('thinkorm.connections.mysql'), ['break_reconnect' => true]);
-
-        Db::setConfig($config);
-        Db::connect('mysql')->connect($config);
+        //无需处理数据库
     }
 }
