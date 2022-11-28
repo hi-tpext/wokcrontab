@@ -264,7 +264,6 @@ class Index extends Server
         } else if (ExtLoader::isTP60()) {
             $config = array_merge(Config::get('database.connections.mysql'), ['break_reconnect' => true]);
 
-            Db::setConfig($config);
             Db::connect('mysql')->connect($config);
         }
     }
