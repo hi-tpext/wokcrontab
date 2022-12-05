@@ -7,7 +7,7 @@ use think\Controller;
 use tpext\builder\traits\actions;
 use think\facade\Lang;
 use wokcrontab\common\Module;
-
+use tpext\think\App;
 /**
  * @time tpextmanager 生成于2021-08-06 16:58:37
  * @title 定时任务app账户
@@ -37,7 +37,7 @@ class Wokcrontabapp extends Controller
         $this->pagesize = 8;
         $this->sortOrder = 'id desc';
 
-        Lang::load(Module::getInstance()->getRoot() . implode(DIRECTORY_SEPARATOR, ['admin', 'lang', config('default_lang', 'zh-cn'), 'wokcrontabapp' . '.php']));
+        Lang::load(Module::getInstance()->getRoot() . implode(DIRECTORY_SEPARATOR, ['admin', 'lang', App::getDefaultLang(), 'wokcrontabapp' . '.php']));
     }
 
     /**

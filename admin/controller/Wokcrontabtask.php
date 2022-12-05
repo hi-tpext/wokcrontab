@@ -8,6 +8,7 @@ use tpext\builder\traits\actions;
 use think\facade\Lang;
 use wokcrontab\common\Module;
 use Workerman\Crontab\Parser;
+use tpext\think\App;
 
 /**
  * @time tpextmanager 生成于2021-08-06 17:23:30
@@ -41,7 +42,7 @@ class Wokcrontabtask extends Controller
 
         $this->indexWith = ['app'];
 
-        Lang::load(Module::getInstance()->getRoot() . implode(DIRECTORY_SEPARATOR, ['admin', 'lang', config('default_lang', 'zh-cn'), 'wokcrontabtask' . '.php']));
+        Lang::load(Module::getInstance()->getRoot() . implode(DIRECTORY_SEPARATOR, ['admin', 'lang', App::getDefaultLang(), 'wokcrontabtask' . '.php']));
     }
 
     /**
