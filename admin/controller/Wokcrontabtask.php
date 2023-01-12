@@ -163,7 +163,7 @@ class Wokcrontabtask extends Controller
             . '</pre>');
 
         $form->text('url')->maxlength(255)->required()->help('要请求的网址');
-        $form->text('remark')->maxlength(255);
+        $form->textarea('remark')->maxlength(255);
         $form->text('tag')->maxlength(55);
 
         if ($isEdit) {
