@@ -49,6 +49,13 @@ class Cron
 
             foreach ($this->taskList as $li) {
                 $tid = $li['id'];
+                if ($app['enable'] == 0) { //应用被禁用
+                    if (isset($this->appTasks[$tid])) {
+                        Log::info("app disabled, app_id:" . $app['id']);
+                    }
+                    continue;
+                }
+
                 if (isset($this->appTasks[$tid]) && $this->appTasks[$tid]['update_time'] != $li['update_time']) { //修改过任务
                     Crontab::remove($this->appTasks[$tid]['task_id']); //移除
                     unset($this->appTasks[$tid]);
@@ -63,7 +70,7 @@ class Cron
 
                         model\WokCrontabTask::where('id', $tid)->update(['last_run_time' => date('Y-m-d H:i:s'), 'last_run_info' => $res[0] . ':' . $res[1]]);
 
-                        Log::info($li['rule'] . ' @ ' . 'request url :' . $li['url']  . ' => ' . $time1 . ' s, ' . ' [' . $res[0] . ']' . $res[1]);
+                        Log::info($li['rule'] . '@' . 'request url:' . $li['url']  . ' => ' . $time1 . ' s, ' . ' [' . $res[0] . ']' . $res[1]);
                     });
                     $this->appTasks[$tid] = [
                         'task_id' => $task->getId(),

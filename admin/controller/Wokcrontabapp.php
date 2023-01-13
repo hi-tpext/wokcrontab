@@ -108,7 +108,7 @@ class Wokcrontabapp extends Controller
             $form->show('name');
             $form->show('id');
             $form->raw('secret')->to('<label id="show-secret" class="label label-success"><i class="mdi mdi-mdi-eye"></i>显示</label><span style="display: none;margin-left:5px">{val}<span/>');
-            $form->match('enable')->options([0 => '否', 1 => '是']);
+            $form->match('enable')->options([0 => '否', 1 => '是'])->help('禁用后应用所属的定时任务都不再执行');
             $this->builder()->addScript("$('#show-secret').click(function(){\$(this).next('span').toggle()});");
         } else {
             $form->text('name')->maxlength(55)->required();
