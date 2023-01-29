@@ -121,9 +121,7 @@ class Cron
                 'time: ' . $time,
                 'sign: ' . $sign,
             ];
-
-            request()->header();
-
+            
             $options = [
                 'http' => [
                     'method' => 'GET',
