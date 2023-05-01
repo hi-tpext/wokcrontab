@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS `__PREFIX__wok_crontab_app` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=10001 DEFAULT CHARSET=utf8 COMMENT='定时应用';
 
-CREATE TABLE `__PREFIX__wok_crontab_task` (
+CREATE TABLE IF NOT EXISTS `__PREFIX__wok_crontab_task` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
   `app_id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '应用App_id',
   `name` varchar(55) NOT NULL DEFAULT '' COMMENT '名称',
