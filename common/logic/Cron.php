@@ -204,6 +204,9 @@ class Cron
             $response = $client->request('GET', $url);
             if ($response->getStatusCode() == '200') {
                 $content = (string)$response->getBody();
+                if (!$content) {
+                    return [200, '无返回内容'];
+                }
                 return [200, mb_substr($content, 0, 100)];
             } else {
                 return [$response->getStatusCode(), ''];
