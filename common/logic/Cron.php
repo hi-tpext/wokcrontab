@@ -4,12 +4,14 @@ namespace wokcrontab\common\logic;
 
 use think\facade\Db;
 use think\facade\Log;
+use GuzzleHttp\Client;
 use think\facade\Config;
 use Workerman\Lib\Timer;
 use tpext\common\ExtLoader;
 use wokcrontab\common\model;
 use wokcrontab\common\Module;
 use Workerman\Crontab\Crontab;
+use GuzzleHttp\Exception\RequestException;
 
 class Cron
 {
@@ -21,6 +23,11 @@ class Cron
 
     protected $allTaskKeys = null;
 
+    /**
+     * this
+     *
+     * @var Cron 
+     */
     protected static $that;
 
     public function onWorkerStart($worker)
@@ -31,11 +38,11 @@ class Cron
 
         $this->initDb();
 
-        $this->runTask();
+        $this->runTask($worker);
         $this->heartBeat($worker);
     }
 
-    protected function runTask()
+    protected function runTask($worker)
     {
         $this->allTaskKeys = [];
 
@@ -43,40 +50,52 @@ class Cron
 
         $tid = '';
 
-        foreach ($this->appList as $app) {
+        $guzzleHttp = class_exists(Client::class);
 
+        $threadTotal = $worker->count; //总进程数量 n
+        $threadId = $worker->id; //当前进程编号 1 ~ (n-1)
+
+        $i = -1;
+        foreach ($this->appList as $app) {
+            if ($app['enable'] == 0) { //应用被禁用
+                Log::info("app disabled, app_id:" . $app['id']);
+                continue;
+            }
             $this->taskList =  model\WokCrontabTask::where(['app_id' => $app['id']])->select();
 
             foreach ($this->taskList as $li) {
-                $tid = $li['id'];
-                if ($app['enable'] == 0) { //应用被禁用
-                    if (isset($this->appTasks[$tid])) {
-                        Log::info("app disabled, app_id:" . $app['id']);
-                    }
+                $i += 1;
+                if ($i % $threadTotal != $threadId) {
                     continue;
                 }
+                $tid = $li['id'];
 
                 if (isset($this->appTasks[$tid]) && $this->appTasks[$tid]['update_time'] != $li['update_time']) { //修改过任务
                     Crontab::remove($this->appTasks[$tid]['task_id']); //移除
                     unset($this->appTasks[$tid]);
-                    Log::info("task info changed, remove:" . $tid);
+                    Log::info('[thread-' . $threadId . ']task info changed, remove:' . $tid);
                 }
                 if (!isset($this->appTasks[$tid])) {
-                    $task = new Crontab($li['rule'], function () use ($li, $tid, $app) {
+                    $task = new Crontab($li['rule'], function () use ($li, $tid, $app, $guzzleHttp, $threadId) {
                         $t1 = microtime(true);
-                        $res = Cron::$that->curl($li['url'], $app);
+                        $res = null;
+                        if ($guzzleHttp) {
+                            $res = self::$that->guzzleHttpGet($li['url'], $app);
+                        } else {
+                            $res = self::$that->curl($li['url'], $app);
+                        }
                         $t2 = microtime(true);
                         $time1 = round($t2 - $t1, 2);
 
                         model\WokCrontabTask::where('id', $tid)->update(['last_run_time' => date('Y-m-d H:i:s'), 'last_run_info' => $res[0] . ':' . $res[1]]);
 
-                        Log::info($li['rule'] . '@' . 'request url:' . $li['url']  . ' => ' . $time1 . ' s, ' . ' [' . $res[0] . ']' . $res[1]);
+                        Log::info('[thread-' . $threadId . '] ' . $li['rule'] . ' @' . 'request url:' . $li['url']  . ' => ' . $time1 . ' s, ' . '[' . $res[0] . ']' . $res[1]);
                     });
                     $this->appTasks[$tid] = [
                         'task_id' => $task->getId(),
                         'update_time' => $li['update_time']
                     ];
-                    Log::info("add task:" . $tid);
+                    Log::info('[thread-' . $threadId . '] add task:' . $tid);
                 }
 
                 $this->allTaskKeys[] = $tid;
@@ -87,7 +106,7 @@ class Cron
             if (!in_array($key, $this->allTaskKeys)) { //已经从数据库删除
                 Crontab::remove($taskInfo['task_id']); //移除
                 unset($this->appTasks[$key]);
-                Log::info("remove task:" . $key);
+                Log::info('[thread-' . $threadId . '] remove task:' . $key);
             }
         }
     }
@@ -108,7 +127,7 @@ class Cron
 
             $cafile = Module::getInstance()->getRoot() . 'data' . DIRECTORY_SEPARATOR . 'cacert.pem';
 
-            $header = [
+            $headers = [
                 'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
                 'Accept-Encoding: gzip, deflate, br',
                 'Accept-Language: zh-CN,en-US;q=0.7,en;q=0.3',
@@ -121,7 +140,7 @@ class Cron
                 'time: ' . $time,
                 'sign: ' . $sign,
             ];
-            
+
             $options = [
                 'http' => [
                     'method' => 'GET',
@@ -130,7 +149,7 @@ class Cron
                         'verify_peer' => false,
                         'verify_peer_name' => false,
                     ],
-                    'header' => implode("\r\n", $header),
+                    'header' => implode("\r\n", $headers),
                     'timeout' => 300 // 超时时间（单位:s）
                 ]
             ];
@@ -143,7 +162,60 @@ class Cron
             }
 
             return [200, mb_substr($result, 0, 100)];
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
+            return [500, mb_substr($e->getMessage(), 0, 100)];
+        }
+    }
+
+    /**
+     * Undocumented function
+     *
+     * @param string $url
+     * @return array
+     */
+    protected function guzzleHttpGet($url, $app)
+    {
+        try {
+            $url = trim($url);
+            $time = time();
+            $sign = md5($app['secret'] . $time);
+
+            $headers = [
+                'Accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+                'Accept-Encoding' => 'gzip, deflate, br',
+                'Accept-Language' => 'zh-CN,en-US;q=0.7,en;q=0.3',
+                'Content-Type' => 'application/x-www-form-urlencoded; charset=UTF-8',
+                'Connection' => 'close',
+                'User-Agent' => 'Mozilla/5.0 (Linux) Gecko/20100101 Firefox/99.0 Chrome/99.0 Wokcrontab/1.0.8',
+                'Referer' =>  preg_replace('/^(https?:\/\/[^\/]+).*$/', '$1', $url) . '/',
+                'Host' => preg_replace('/^https?:\/\/([^\/]+).*$/', '$1', $url),
+                'appid' => $app['id'],
+                'time' => $time,
+                'sign' => $sign,
+            ];
+
+            $client = new Client([
+                'verify' => false, //不验证https
+                'timeout' => 300, // 超时时间（单位:s）
+                'headers' => $headers,
+                'http_errors' => false,
+            ]);
+
+            $response = $client->request('GET', $url);
+            if ($response->getStatusCode() == '200') {
+                $content = (string)$response->getBody();
+                return [200, mb_substr($content, 0, 100)];
+            } else {
+                return [$response->getStatusCode(), ''];
+            }
+        } catch (RequestException $e) {
+            if ($e->hasResponse()) {
+                $response = $e->getResponse();
+                $content = (string)$response->getBody();
+                return [500, mb_substr($content, 0, 100)];
+            }
+            return [500, mb_substr($e->getMessage(), 0, 100)];
+        } catch (\Throwable $e) {
             return [500, mb_substr($e->getMessage(), 0, 100)];
         }
     }
@@ -151,7 +223,7 @@ class Cron
     /**
      * 心跳
      */
-    protected function heartBeat()
+    protected function heartBeat($worker)
     {
         if (!ExtLoader::isWebman()) {
             Timer::add(5, function () {
@@ -159,8 +231,8 @@ class Cron
             });
         }
 
-        Timer::add(60, function () {
-            Cron::$that->runTask();
+        Timer::add(60, function () use ($worker) {
+            self::$that->runTask($worker);
         });
     }
 

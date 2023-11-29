@@ -14,7 +14,7 @@ class Index extends Server
 
     protected $option   = [
         'name' => 'workcrontab',
-        'count' => 1,
+        'count' => 4,
         'user' => 'www',
         'group' => 'www',
         'reloadable' => true,
@@ -36,6 +36,7 @@ class Index extends Server
 
         $this->option['user'] = $config['user'] ?: 'www';
         $this->option['group'] = $config['group'] ?: 'www';
+        $this->option['count'] = $config['count'] ?: 4;
 
         Worker::$daemonize = $config['daemonize'] == 1;
 
