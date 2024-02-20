@@ -144,14 +144,14 @@ class Cron
             $options = [
                 'http' => [
                     'method' => 'GET',
-                    'ssl' => [
-                        'cafile' => $cafile,
-                        'verify_peer' => false,
-                        'verify_peer_name' => false,
-                    ],
                     'header' => implode("\r\n", $headers),
                     'timeout' => 300 // 超时时间（单位:s）
-                ]
+                ],
+                'ssl' => [
+                    'cafile' => $cafile,
+                    'verify_peer' => false,
+                    'verify_peer_name' => false,
+                ],
             ];
             $context = stream_context_create($options);
 
