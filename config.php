@@ -7,6 +7,7 @@ return [
     'group' => 'www',
     'count' => 4,
     'tips' => '<p>以上配置在thinkphp中有效。webman请在/config/process.php自定义进程中设置</p>',
+    'timeout' => 5,
     //
     //配置描述
     '__config__' => [
@@ -16,5 +17,6 @@ return [
         'group' => ['type' => 'text', 'label' => '运行用户组', 'size' => [2, 8], 'help' => '(linux系统有效)一般为www或www-data，确保系统中分组存在，不行的话填root'],
         'count' => ['type' => 'number', 'label' => '进程数量', 'size' => [2, 8], 'help' => '可把任务按序号分配到多个进程上，任务过多时可适当提高进程数量'],
         'tips' => ['type' => 'raw', 'label' => '提示', 'size' => [2, 8]],
+        'timeout' => ['type' => 'number', 'label' => '超时时间', 'size' => [2, 8], 'help' => 'http请求超时时间，单位秒'],
     ],
 ];

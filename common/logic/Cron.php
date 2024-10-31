@@ -3,6 +3,7 @@
 namespace wokcrontab\common\logic;
 
 use think\facade\Db;
+use think\facade\Cache;
 use think\facade\Log;
 use GuzzleHttp\Client;
 use think\facade\Config;
@@ -133,7 +134,7 @@ class Cron
                 'Accept-Language: zh-CN,en-US;q=0.7,en;q=0.3',
                 'Content-Type: application/x-www-form-urlencoded; charset=UTF-8',
                 'Connection: close',
-                'User-Agent: Mozilla/5.0 (Linux) Gecko/20100101 Firefox/99.0 Chrome/99.0 Wokcrontab/1.0.8',
+                'User-Agent: Mozilla/5.0 (Linux) Gecko/20100101 Firefox/99.0 Chrome/99.0 Wokcrontab/' . Module::getInstance()->getVersion(),
                 'Referer: ' . preg_replace('/^(https?:\/\/[^\/]+).*$/', '$1', $url) . '/',
                 'Host: ' . preg_replace('/^https?:\/\/([^\/]+).*$/', '$1', $url),
                 'appid: ' . $app['id'],
@@ -145,7 +146,7 @@ class Cron
                 'http' => [
                     'method' => 'GET',
                     'header' => implode("\r\n", $headers),
-                    'timeout' => 300 // 超时时间（单位:s）
+                    'timeout' => Module::getInstance()->config('timeout', 5) // 超时时间（单位:s）
                 ],
                 'ssl' => [
                     'cafile' => $cafile,
@@ -186,7 +187,7 @@ class Cron
                 'Accept-Language' => 'zh-CN,en-US;q=0.7,en;q=0.3',
                 'Content-Type' => 'application/x-www-form-urlencoded; charset=UTF-8',
                 'Connection' => 'close',
-                'User-Agent' => 'Mozilla/5.0 (Linux) Gecko/20100101 Firefox/99.0 Chrome/99.0 Wokcrontab/1.0.8',
+                'User-Agent' => 'Mozilla/5.0 (Linux) Gecko/20100101 Firefox/99.0 Chrome/99.0 Wokcrontab/' . Module::getInstance()->getVersion(),
                 'Referer' =>  preg_replace('/^(https?:\/\/[^\/]+).*$/', '$1', $url) . '/',
                 'Host' => preg_replace('/^https?:\/\/([^\/]+).*$/', '$1', $url),
                 'appid' => $app['id'],
@@ -196,7 +197,7 @@ class Cron
 
             $client = new Client([
                 'verify' => false, //不验证https
-                'timeout' => 300, // 超时时间（单位:s）
+                'timeout' => Module::getInstance()->config('timeout', 5), // 超时时间（单位:s）
                 'headers' => $headers,
                 'http_errors' => false,
             ]);
@@ -229,7 +230,8 @@ class Cron
     protected function heartBeat($worker)
     {
         if (!ExtLoader::isWebman()) {
-            Timer::add(5, function () {
+            Timer::add(55, function () {
+                Cache::get('ping');
                 model\WokCrontabApp::where('id', 1)->find(); //保存数据库连接
             });
         }
