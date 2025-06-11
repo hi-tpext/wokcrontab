@@ -37,7 +37,7 @@ class Wokcrontabtask extends Controller
         $this->selectTextField = '{app_id}#{uid}:{name}';
         $this->selectSearch = 'id|name';
         $this->pk = 'id';
-        $this->pagesize = 14;
+        $this->pagesize = 8;
         $this->sortOrder = 'id desc';
 
         $this->indexWith = ['app'];
