@@ -7,7 +7,6 @@ use think\facade\Cache;
 use think\facade\Log;
 use GuzzleHttp\Client;
 use think\facade\Config;
-use Workerman\Lib\Timer;
 use tpext\common\ExtLoader;
 use wokcrontab\common\model;
 use wokcrontab\common\Module;
@@ -230,9 +229,13 @@ class Cron
     protected function heartBeat($worker)
     {
         if (!ExtLoader::isWebman()) {
-            Timer::add(55, function () {
+            Timer::add(50, function () {
                 Cache::get('ping');
-                model\WokCrontabApp::where('id', 1)->find(); //保存数据库连接
+                if (ExtLoader::isTP51()) {
+                    \think\Db::query('SELECT 1'); //保存数据库连接
+                } else {
+                    Db::query('SELECT 1'); //保存数据库连接
+                }
             });
         }
 

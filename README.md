@@ -54,7 +54,7 @@ return [
  return [
     //....其它配置，这里省略....
     'wokcrontab'  => [
-        'handler'  => 'wokcrontab\\worker\\Webman'，
+        'handler'  => 'wokcrontab\\worker\\Webman',
         'count' => 4, // 进程数
         'user' => 'www',
         'group' => 'www',
