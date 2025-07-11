@@ -53,12 +53,11 @@ class Cron
         $guzzleHttp = class_exists(Client::class);
 
         $threadTotal = $worker->count; //总进程数量 n
-        $threadId = $worker->id; //当前进程编号 1 ~ (n-1)
+        $threadId = $worker->id; //当前进程编号 0 ~ (n-1)
 
         $i = -1;
         foreach ($this->appList as $app) {
             if ($app['enable'] == 0) { //应用被禁用
-                Log::info("app disabled, app_id:" . $app['id']);
                 continue;
             }
             $this->taskList =  model\WokCrontabTask::where(['app_id' => $app['id']])->select();

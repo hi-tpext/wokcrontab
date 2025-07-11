@@ -12,10 +12,18 @@ composer require topthink/think-worker:^2.0
 composer require workerman/crontab:^1.0
 ```
 
-#### tp6.0
+#### tp6.x
 
 ```bash
 composer require topthink/think-worker:^3.0
+
+composer require workerman/crontab:^1.0
+```
+
+#### tp8.x
+
+```bash
+composer require topthink/think-worker:^5.0
 
 composer require workerman/crontab:^1.0
 ```
@@ -36,13 +44,42 @@ composer require guzzlehttp/guzzle:^7.8
 
 ### 使用
 
-#### tp 修改配置
+#### tp5/tp6 修改配置
 
 `/config/worker_server.php`
 
 ```php
 return [
     'worker_class' => ['wokcrontab\\worker\\Index'],//可以多个
+];
+```
+
+#### tp8 修改配置
+
+`/app/event.php`
+
+```php
+<?php
+// 事件定义文件
+return [
+    'bind'      => [
+    ],
+
+    'listen'    => [
+        'AppInit'  => [],
+        'HttpRun'  => [],
+        'HttpEnd'  => [],
+        'LogLevel' => [],
+        'LogWrite' => [],
+        // 新增worker.init事件，用于初始化worker
+        'worker.init' => [
+            'wokcrontab\\common\\WorkerInit',
+            //可以多个
+        ],
+    ],
+
+    'subscribe' => [
+    ],
 ];
 ```
 

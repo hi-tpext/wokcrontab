@@ -112,6 +112,7 @@ class Wokcrontabapp extends Controller
             $this->builder()->addScript("$('#show-secret').click(function(){\$(this).next('span').toggle()});");
         } else {
             $form->text('name')->maxlength(55)->required();
+            $form->switchBtn('enable')->default(1);
         }
     }
 

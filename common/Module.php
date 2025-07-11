@@ -10,7 +10,7 @@ use tpext\common\ExtLoader;
  */
 class Module  extends baseModule
 {
-    protected $version = '1.0.17';
+    protected $version = '1.0.18';
 
     protected $name = 'wokman.crontab';
 
@@ -71,22 +71,22 @@ class Module  extends baseModule
      */
     public function install()
     {
-        if (!ExtLoader::isWebman() && !class_exists('\\think\\worker\\Server')) { //根据think-worker中某一个类是否存在来判断sdk是否已经安装
-
+        if (!ExtLoader::isWebman() && !class_exists('\\think\\worker\\Http')) { //根据think-worker中某一个类是否存在来判断sdk是否已经安装
             if (ExtLoader::isTP51()) {
-
                 $this->errors[] = new \Exception('<p>请使用composer安装think-worker后再安装本扩展！</p><pre>composer require topthink/think-worker:^2.0</pre>');
+                return false;
+            } else if (ExtLoader::isTP80()) {
+                $this->errors[] = new \Exception('<p>请使用composer安装think-worker后再安装本扩展！</p><pre>composer require topthink/think-worker:^5.0</pre>');
+                return false;
             } else if (ExtLoader::isTP60()) {
-
                 $this->errors[] = new \Exception('<p>请使用composer安装think-worker后再安装本扩展！</p><pre>composer require topthink/think-worker:^3.0</pre>');
+                return false;
             }
-
-            return false;
         }
 
         if (!class_exists('\\Workerman\\Crontab\\Crontab')) { //根据Workerman-Crontab中某一个类是否存在来判断sdk是否已经安装
 
-            $this->errors[] = new \Exception('<p>请使用composer安装Workerman-crontab后再安装本扩展！</p><pre>composer require workerman/crontab:^1.0</pre>');
+            $this->errors[] = new \Exception('<p>请使用composer安装Workerman-crontab后再安装本扩展！</p><pre>composer require workerman/crontab</pre>');
 
             return false;
         }
