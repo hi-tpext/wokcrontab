@@ -10,7 +10,7 @@ use tpext\common\ExtLoader;
  */
 class Module  extends baseModule
 {
-    protected $version = '1.0.18';
+    protected $version = '1.0.19';
 
     protected $name = 'wokman.crontab';
 
