@@ -91,7 +91,6 @@ return [
  return [
     //....其它配置，这里省略....
     'wokcrontab'  => [
-        'eventLoop' => Workerman\Events\Swoole::class,//使用协程，支持：Swow、Swoole、Fiber
         'handler'  => 'wokcrontab\\worker\\Webman',
         'count' => 4, // 进程数
         'user' => 'www',
@@ -282,9 +281,3 @@ class Order extends Controller
 }
 
 ```
-
-### 超时设置
-
-在不支持协程的情况下，应增大进程数量，减小http超时，以避免任务阻塞。
-
-协程条件：`webman`且配置 `eventLoop` 为支持协程的 ，从版本 1.0.19 支持

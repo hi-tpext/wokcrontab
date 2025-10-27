@@ -7,8 +7,6 @@ use think\facade\Cache;
 use think\facade\Log;
 use GuzzleHttp\Client;
 use think\facade\Config;
-use Workerman\Coroutine;
-use Workerman\Coroutine\Locker;
 use tpext\common\ExtLoader;
 use wokcrontab\common\model;
 use wokcrontab\common\Module;
@@ -53,7 +51,6 @@ class Cron
         $tid = '';
 
         $guzzleHttp = class_exists(Client::class);
-        $coroutine = class_exists(Coroutine::class);
 
         $threadTotal = $worker->count; //总进程数量 n
         $threadId = $worker->id; //当前进程编号 0 ~ (n-1)
@@ -78,7 +75,7 @@ class Cron
                     Log::info('[thread-' . $threadId . ']task info changed, remove:' . $tid);
                 }
                 if (!isset($this->appTasks[$tid])) {
-                    $call = function () use ($li, $tid, $app, $guzzleHttp, $threadId, $coroutine) {
+                    $task = new Crontab($li['rule'], function () use ($li, $tid, $app, $guzzleHttp, $threadId) {
                         $t1 = microtime(true);
                         $res = null;
                         if ($guzzleHttp) {
@@ -91,20 +88,8 @@ class Cron
 
                         model\WokCrontabTask::where('id', $tid)->update(['last_run_time' => date('Y-m-d H:i:s'), 'last_run_info' => $res[0] . ':' . $res[1]]);
 
-                        $logInfo = '[thread-' . $threadId . '] ' . $li['rule'] . ' @' . 'request url:' . $li['url']  . ' => ' . $time1 . ' s, ' . '[' . $res[0] . ']' . $res[1];
-                        if ($coroutine) {
-                            //使用协程时，防止并发写入日志
-                            Locker::lock('wokcrontab');
-                            Log::info($logInfo);
-                            Locker::unlock('wokcrontab');
-                        } else {
-                            Log::info($logInfo);
-                        }
-                    };
-                    $taskCall = $coroutine ? function () use ($call) {
-                        Coroutine::create($call);
-                    } : $call;
-                    $task = new Crontab($li['rule'], $taskCall);
+                        Log::info('[thread-' . $threadId . '] ' . $li['rule'] . ' @' . 'request url:' . $li['url']  . ' => ' . $time1 . ' s, ' . '[' . $res[0] . ']' . $res[1]);
+                    });
                     $this->appTasks[$tid] = [
                         'task_id' => $task->getId(),
                         'update_time' => $li['update_time']
