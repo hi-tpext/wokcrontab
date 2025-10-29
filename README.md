@@ -9,7 +9,7 @@
 ```bash
 composer require topthink/think-worker:^2.0
 
-composer require workerman/crontab:^1.0
+composer require workerman/crontab
 ```
 
 #### tp6.x
@@ -17,7 +17,7 @@ composer require workerman/crontab:^1.0
 ```bash
 composer require topthink/think-worker:^3.0
 
-composer require workerman/crontab:^1.0
+composer require workerman/crontab
 ```
 
 #### tp8.x
@@ -25,21 +25,21 @@ composer require workerman/crontab:^1.0
 ```bash
 composer require topthink/think-worker:^5.0
 
-composer require workerman/crontab:^1.0
+composer require workerman/crontab
 ```
 
 #### webman
 
 ```bash
-composer require workerman/crontab:^1.0
+composer require workerman/crontab
 ```
 
-### 安装 GuzzleHttp
+### 安装 http-client（可选）
 
-#### 可选，没有安装将使用内部实现(https可能有问题，使用http)
+#### 没有安装将使用内部实现，强烈推荐安装，安装后可实现异步非阻塞，多个任务并发执行。
 
-```bash 
-composer require guzzlehttp/guzzle:^7.8
+```bash
+composer require workerman/http-client
 ```
 
 ### 使用
@@ -99,6 +99,12 @@ return [
 ];
 //修改完重启webman
 ```
+
+#### 进程数量和超时设置
+
+未安装`workerman/http-client`，同一个进程中 http 请求是阻塞的，应加大进程数量(4~8)，缩短超时(推荐 10 秒以内)，一些耗时长的任务将得不到执行结果反馈。
+
+安装`workerman/http-client`，可以减少进程(1~3)，超时也可以宽松一些(60 秒以上)，尽量得到执行结果反馈。
 
 #### 环境要求
 

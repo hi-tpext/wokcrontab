@@ -4,6 +4,21 @@ namespace wokcrontab\common\logic;
 
 class Timer
 {
+    protected static $libVer = 0;
+
+    protected static function getLibVer()
+    {
+        if (static::$libVer == 0) {
+            if (class_exists(\Workerman\Lib\Timer::class)) {
+                static::$libVer = 1;
+            } else if (class_exists(\Workerman\Timer::class)) {
+                static::$libVer = 2;
+            }
+        }
+
+        return static::$libVer;
+    }
+
     /**
      * Add a timer.
      *
@@ -15,10 +30,12 @@ class Timer
      */
     public static function add($time_interval, $func, $args = [], $persistent = true)
     {
-        if (class_exists(\Workerman\Timer::class)) {
-            return \Workerman\Timer::add($time_interval, $func, $args, $persistent);
-        } else if (class_exists(\Workerman\Lib\Timer::class)) {
+        $ver = static::getLibVer();
+
+        if ($ver == 1) {
             return \Workerman\Lib\Timer::add($time_interval, $func, $args, $persistent);
+        } else if ($ver == 2) {
+            return \Workerman\Timer::add($time_interval, $func, $args, $persistent);
         }
 
         return false;
@@ -31,10 +48,12 @@ class Timer
      */
     public static function del($timerId)
     {
-        if (class_exists(\Workerman\Timer::class)) {
-            return \Workerman\Timer::del($timerId);
-        } else if (class_exists(\Workerman\Lib\Timer::class)) {
+        $ver = static::getLibVer();
+
+        if ($ver == 1) {
             return \Workerman\Lib\Timer::del($timerId);
+        } else if ($ver == 2) {
+            return \Workerman\Timer::del($timerId);
         }
 
         return false;
