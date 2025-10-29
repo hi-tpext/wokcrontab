@@ -236,59 +236,55 @@ class Cron
      */
     protected function httpClientGet($li, $app, $tid, $threadId)
     {
-        try {
-            $url = trim($li['url']);
-            $time = time();
-            $sign = md5($app['secret'] . $time);
+        $url = trim($li['url']);
+        $time = time();
+        $sign = md5($app['secret'] . $time);
 
-            if (!self::$httpClient) {
-                $options = [
-                    'max_conn_per_addr' => 128, // 每个域名最多维持多少并发连接
-                    'keepalive_timeout' => 15,  // 连接多长时间不通讯就关闭
-                    'connect_timeout'   => 30,  // 连接超时时间
-                    'timeout'           => Module::getInstance()->config('timeout', 5),  // 请求发出后等待响应的超时时间
-                ];
-                self::$httpClient = new HttpClient($options);
-            }
-
-            $headers = [
-                'Accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-                'User-Agent' => 'Mozilla/5.0 (Linux) Gecko/20100101 Firefox/99.0 Chrome/99.0 Wokcrontab/' . Module::getInstance()->getVersion(),
-                'Referer' =>  preg_replace('/^(https?:\/\/[^\/]+).*$/', '$1', $url) . '/',
-                'Host' => preg_replace('/^https?:\/\/([^\/]+).*$/', '$1', $url),
-                'appid' => $app['id'],
-                'time' => $time,
-                'sign' => $sign,
+        if (!self::$httpClient) {
+            $options = [
+                'max_conn_per_addr' => 128, // 每个域名最多维持多少并发连接
+                'keepalive_timeout' => 15,  // 连接多长时间不通讯就关闭
+                'connect_timeout'   => 30,  // 连接超时时间
+                'timeout'           => Module::getInstance()->config('timeout', 5),  // 请求发出后等待响应的超时时间
             ];
-
-            $t1 = microtime(true);
-            self::$httpClient->request($url, [
-                'method' => 'GET',
-                'headers' => $headers,
-                'success' => function ($response) use ($li, $t1, $threadId, $tid) {
-                    $content = (string)$response->getBody();
-                    if (!$content) {
-                        $content = '无返回内容';
-                    }
-                    $content = mb_substr($content, 0, 100);
-                    $t2 = microtime(true);
-                    $time1 = round($t2 - $t1, 2);
-                    model\WokCrontabTask::where('id', $tid)->update(['last_run_time' => date('Y-m-d H:i:s'), 'last_run_info' => 200 . ':' . $content]);
-
-                    Log::info('[thread-' . $threadId . '] ' . $li['rule'] . ' @' . 'request url:' . $li['url']  . ' => ' . $time1 . ' s, ' . '[' . 200 . ']' . $content);
-                },
-                'error' => function ($e) {
-                    throw $e;
-                }
-            ]);
-        } catch (\Throwable $e) {
-            $t2 = microtime(true);
-            $time1 = round($t2 - $t1, 2);
-
-            $content = mb_substr($e->getMessage(), 0, 100);
-            model\WokCrontabTask::where('id', $tid)->update(['last_run_time' => date('Y-m-d H:i:s'), 'last_run_info' => 500 . ':' . $content]);
-            Log::info('[thread-' . $threadId . '] ' . $li['rule'] . ' @' . 'request url:' . $li['url']  . ' => ' . $time1 . ' s, ' . '[' . 500 . ']' . $content);
+            self::$httpClient = new HttpClient($options);
         }
+
+        $headers = [
+            'Accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+            'User-Agent' => 'Mozilla/5.0 (Linux) Gecko/20100101 Firefox/99.0 Chrome/99.0 Wokcrontab/' . Module::getInstance()->getVersion(),
+            'Referer' =>  preg_replace('/^(https?:\/\/[^\/]+).*$/', '$1', $url) . '/',
+            'Host' => preg_replace('/^https?:\/\/([^\/]+).*$/', '$1', $url),
+            'appid' => $app['id'],
+            'time' => $time,
+            'sign' => $sign,
+        ];
+
+        $t1 = microtime(true);
+        self::$httpClient->request($url, [
+            'method' => 'GET',
+            'headers' => $headers,
+            'success' => function ($response) use ($li, $t1, $threadId, $tid) {
+                $content = (string)$response->getBody();
+                if (!$content) {
+                    $content = '无返回内容';
+                }
+                $content = mb_substr($content, 0, 100);
+                $t2 = microtime(true);
+                $time1 = round($t2 - $t1, 2);
+                model\WokCrontabTask::where('id', $tid)->update(['last_run_time' => date('Y-m-d H:i:s'), 'last_run_info' => 200 . ':' . $content]);
+
+                Log::info('[thread-' . $threadId . '] ' . $li['rule'] . ' @' . 'request url:' . $li['url']  . ' => ' . $time1 . ' s, ' . '[' . 200 . ']' . $content);
+            },
+            'error' => function ($e) use ($li, $t1, $threadId, $tid) {
+                $t2 = microtime(true);
+                $time1 = round($t2 - $t1, 2);
+
+                $content = mb_substr($e->getMessage(), 0, 100);
+                model\WokCrontabTask::where('id', $tid)->update(['last_run_time' => date('Y-m-d H:i:s'), 'last_run_info' => 500 . ':' . $content]);
+                Log::info('[thread-' . $threadId . '] ' . $li['rule'] . ' @' . 'request url:' . $li['url']  . ' => ' . $time1 . ' s, ' . '[' . 500 . ']' . $content);
+            }
+        ]);
     }
 
     /**
